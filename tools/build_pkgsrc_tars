@@ -1,0 +1,18 @@
+#!/bin/bash -x
+
+cd $(dirname $0)/..
+SMARTOS_LIVE=$(pwd)
+OUTPUTS=${SMARTOS_LIVE}/output/pkgsrc_inputs
+mkdir -p ${OUTPUTS}
+VERSION=$( cd projects/illumos; echo g$(git describe --all --long | awk -F'-g' '{print $NF}') ; )
+
+SOURCES="
+projects/illumos/usr/src/tools/proto/root_i386-nd/opt/onbld
+projects/illumos/usr/src/cmd/sgs
+"
+
+for SOURCE in ${SOURCES}
+do
+  NAME=$(basename ${SOURCE})
+	gtar -czf ${OUTPUTS}/${NAME}-${VERSION}.tar.gz --transform="s/^${NAME}/${NAME}-${VERSION}/" -C $(dirname ${SOURCE}) ${NAME}
+done
