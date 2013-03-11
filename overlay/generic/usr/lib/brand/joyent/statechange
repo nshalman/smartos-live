@@ -294,7 +294,6 @@ setup_net()
 			fi
 		fi
 
-
 		# Get the static IP for the vnic from the zone config file, but only
 		# if there's not an IP from the zone properties
 		hostname_file="$ZONEPATH/root/etc/hostname.$nic"
@@ -312,7 +311,8 @@ setup_net()
 		fi
 
 		if [[ -n "${zone_ip}" ]] && [[ $allow_ip_spoof != "true" ]] && \
-			    [[ "${zone_ip}" != "dhcp" ]]; then
+			    [[ "${zone_ip}" != "dhcp" ]] && [[ "${zone_ip}" != "dhcp6" ]] && \
+			    [[ "${zone_ip}" != "auto6" ]]; then
 			allowed_ips="${zone_ip}"
 			[[ -n $vrrp_primary_ip ]] && \
 			    allowed_ips="${allowed_ips},${vrrp_primary_ip}"
