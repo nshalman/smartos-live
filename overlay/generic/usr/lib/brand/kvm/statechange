@@ -257,16 +257,19 @@ setup_net()
 			fi
 		fi
 
+
+
 		if [[ -n "${zone_ip}" ]] && [[ $allow_ip_spoof != "true" ]] && \
-			    [[ "${zone_ip}" != "dhcp" ]]; then
+			    [[ "${zone_ip}" != "dhcp" ]]  && [[ "${zone_ip}" != "dhcp6" ]] && \
+			    [[ "${zone_ip}" != "auto6" ]]; then
 			dladm set-linkprop -t -z $ZONENAME \
 			    -p "allowed-ips=${zone_ip}" ${nic}
 			if (( $? != 0 )); then
 				echo "error setting VNIC allowed-ip " \
-				    "$nic $zone_ip"
+				    "$nic $allowed_ips"
 				logger -p daemon.err "zone $ZONENAME " \
 				    "error setting VNIC allowed-ip " \
-				    "$nic $zone_ip"
+				    "$nic $allowed_ips"
 				exit 1
 			fi
 		fi
