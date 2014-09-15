@@ -466,6 +466,10 @@ else
 		import_manifests "/opt/custom/smf" true
 	fi
 
+	if [ -d "/system/boot/custom/smf" ]; then
+		import_manifests "/system/boot/custom/smf" true
+	fi
+
 	#
 	# Apply profiles
 	#
