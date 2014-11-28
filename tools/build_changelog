@@ -1,0 +1,31 @@
+#!/usr/bin/bash 
+
+function git_incache {
+	local remote
+	remote=$(git remote -v | grep origin | grep fetch | awk '{print $2}')
+	[[ -d ${remote} ]] && cd ${remote}
+	git "$@"
+
+}
+
+function get_log {
+	local head
+	head=$(git rev-parse HEAD)
+	git_incache log ${1}..${head}
+}
+
+cd $(dirname $0)/..
+
+if [[ "$(git rev-parse --abbrev-ref HEAD)" == "master" ]]; then
+    lastbranch='origin/release-'$(git_incache branch -a | grep origin/release- | sed -e 's/.*release-//' | sort -n | tail -n1)
+else
+    lastbranch=$(git_incache branch -a | ggrep -B 1 origin/${releasebranch} | head -n1 | sed -e 's:remotes/::g')
+fi
+
+(echo `basename ${PWD}`; echo "--------"; echo; get_log ${lastbranch} || echo "TO BE FILLED IN MANUALLY") > output/changelog.txt
+
+# this is really gross.
+for project in illumos illumos-extra local/kvm local/kvm-cmd; do
+    (cd projects/${project}; echo $(basename ${PWD}); echo "--------"; echo;  get_log ${lastbranch} || echo "TO BE FILLED IN MANUALLY") >> output/changelog.txt
+done
+(cd overlay/smartos; echo smartos-overlay; echo "--------"; echo;  get_log ${lastbranch} || echo "TO BE FILLED IN MANUALLY") >> output/changelog.txt
