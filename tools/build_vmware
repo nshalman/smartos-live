@@ -1,0 +1,25 @@
+#!/bin/bash -x
+
+set -o errexit
+set -o pipefail
+
+#get to the right place
+cd $(dirname $0)/..
+[[ -f proto/buildstamp ]] || exit 1
+buildstamp="$(cat proto/buildstamp)"
+
+[[ -x proto/smartdc/bin/qemu-img ]] || exit 1
+[[ -f output-usb/platform-${buildstamp}.usb.bz2 ]] || tools/build_usb
+[[ -f output-usb/platform-${buildstamp}.usb.bz2 ]] || exit 1
+
+pfexec pkgin -y in bsdiff
+rm -rf output-vmware
+mkdir -p output-vmware
+cp -r tools/SmartOS.vmwarevm/ output-vmware/
+# has to be done this way so that the patch will apply
+(cd output-vmware/SmartOS.vmwarevm && ../../proto/smartdc/bin/qemu-img create -f vmdk qemu.vmdk 20G)
+bspatch "output-vmware/SmartOS.vmwarevm/qemu.vmdk" "output-vmware/SmartOS.vmwarevm/Virtual Disk.vmdk" tools/vmdk-patch
+rm output-vmware/SmartOS.vmwarevm/qemu.vmdk
+
+bzip2 -d < output-usb/platform-${buildstamp}.usb.bz2 > output-vmware/SmartOS.vmwarevm/smartos.img
+(cd output-vmware && tar -jcf smartos-${buildstamp}.vmwarevm.tar.bz2 SmartOS.vmwarevm)
